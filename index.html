@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDeta Store v13</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; }
+        .app-card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; transition: 0.2s; }
+        .app-card:hover { border-color: #238636; }
+        .android-icon { color: #3DDC84; } /* Android Green Color */
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <header class="text-center mb-10">
+        <h1 class="text-3xl font-black text-white italic tracking-tighter">OPENDETA <span class="text-green-500">STORE</span></h1>
+        <p id="syncStatus" class="text-[9px] text-gray-500 uppercase tracking-[3px] mt-2 font-bold">Syncing with GitHub...</p>
+    </header>
+
+    <div id="appGrid" class="grid grid-cols-1 gap-3 max-w-md mx-auto">
+        <p class="text-center text-xs text-gray-600">অ্যাপ লিস্ট চেক করা হচ্ছে...</p>
+    </div>
+
+    <script>
+        const USER = "OpenDeta";
+        const REPO = "app-storage";
+        const grid = document.getElementById('appGrid');
+
+        // ১. ক্যাশ লোড করা
+        function init() {
+            const cached = localStorage.getItem('opendeta_v13');
+            if (cached) render(JSON.parse(cached));
+            sync();
+        }
+
+        // ২. রিয়েল ডাটা রেন্ডার করা (ফেক ভার্সন ছাড়া)
+        function render(apks) {
+            if (!apks || apks.length === 0) {
+                grid.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">কোনো অ্যাপ পাওয়া যায়নি।</p>`;
+                return;
+            }
+
+            grid.innerHTML = apks.map(file => {
+                const name = file.name.replace('.apk', '').replace(/-/g, ' ').toUpperCase();
+                return `
+                    <div class="app-card p-4 flex items-center justify-between shadow-md">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 flex items-center justify-center bg-gray-900 rounded-lg">
+                                <svg class="android-icon w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9997.9993-.9997c.5511 0 .9993.4486.9993.9997s-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9997.9993-.9997c.5511 0 .9993.4486.9993.9997s-.4482.9997-.9993.9997m11.4045-6.0206l1.9973-3.4592c.0781-.1355.0315-.3082-.1039-.3863-.1353-.0781-.3077-.0315-.3858.104l-2.0313 3.5181c-1.422-.6492-3.0031-1.0204-4.7001-1.0204-1.697 0-3.2781.3712-4.7001 1.0204l-2.0313-3.5181c-.0781-.1355-.2505-.1821-.3858-.104-.1354.0781-.182.2508-.1039.3863l1.9973 3.4592c-2.7314 1.5436-4.5937 4.3414-4.881 7.6015h17.726c-.2873-3.2601-2.1496-6.0579-4.881-7.6015"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-xs">${name}</h3>
+                                <p class="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5">Application File</p>
+                            </div>
+                        </div>
+                        <a href="${file.download_url}" class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all active:scale-90">
+                            Get
+                        </a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ৩. সার্ভার সিঙ্ক
+        async function sync() {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/apks`);
+                const data = await res.json();
+                const apks = data.filter(f => f.name.endsWith('.apk'));
+                
+                localStorage.setItem('opendeta_v13', JSON.stringify(apks));
+                render(apks);
+                document.getElementById('syncStatus').innerText = "Live Store • Updated";
+            } catch (e) {
+                document.getElementById('syncStatus').innerText = "Offline Mode";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
