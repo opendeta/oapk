@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +20,7 @@
     </header>
 
     <div id="appGrid" class="grid grid-cols-1 gap-3 max-w-md mx-auto">
-        <p class="text-center text-xs text-gray-600">অ্যাপ লিস্ট চেক করা হচ্ছে...</p>
+        <p class="text-center text-xs text-gray-600">Checking for Updates…</p>
     </div>
 
     <script>
@@ -28,17 +28,17 @@
         const REPO = "app-storage";
         const grid = document.getElementById('appGrid');
 
-        // ১. ক্যাশ লোড করা
+    
         function init() {
             const cached = localStorage.getItem('opendeta_v13');
             if (cached) render(JSON.parse(cached));
             sync();
         }
 
-        // ২. রিয়েল ডাটা রেন্ডার করা (ফেক ভার্সন ছাড়া)
+    
         function render(apks) {
             if (!apks || apks.length === 0) {
-                grid.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">কোনো অ্যাপ পাওয়া যায়নি।</p>`;
+                grid.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">Something went wrong!</p>`;
                 return;
             }
 
@@ -54,7 +54,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-white text-xs">${name}</h3>
-                                <p class="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5">Application File</p>
+                                <p class="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5">Android Package (APK)</p>
                             </div>
                         </div>
                         <a href="${file.download_url}" class="bg-white hover:bg-gray-200 text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all active:scale-90">
@@ -65,7 +65,7 @@
             }).join('');
         }
 
-        // ৩. সার্ভার সিঙ্ক
+        // Server Sync 
         async function sync() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/apks`);
